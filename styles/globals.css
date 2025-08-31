@@ -1,0 +1,52 @@
+/* styles/globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700&display=swap');
+
+.main {
+    font-family: 'Montserrat', sans-serif;
+}
+
+
+
+select{
+    @apply focus:outline-none border-2 border-blue-200 px-1
+}
+
+input, textarea{
+    @apply focus:outline-none border-2 border-blue-200 px-1 w-full;
+}
+
+input:focus, textarea:focus, select:focus{
+    @apply border-blue-400;
+}
+
+h1{
+    @apply text-xl font-semibold;
+}
+
+h2 {
+    @apply text-custom-gray-500;
+    
+  }
+
+  @media print {
+  body * {
+    visibility: hidden;
+  }
+
+  #print-section, #print-section * {
+    visibility: visible;
+  }
+
+  #print-section {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+}
+
+  
