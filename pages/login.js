@@ -4,7 +4,7 @@ import { Playfair_Display } from "next/font/google";
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
-  weight: ["400", "700", "900"], // choose weights you want
+  weight: ["400", "700", "900"],
 });
 
 export default function Login() {
@@ -12,56 +12,67 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [pin, setPin] = useState("");
   const [isRegister, setIsRegister] = useState(false);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  // --- Keypad handlers ---
   const handleNumberClick = (num) => setPin((prev) => prev + num);
   const handleDelete = () => setPin((prev) => prev.slice(0, -1));
   const handleClear = () => setPin("");
 
-  // --- Submit handler ---
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
-    if (isRegister) {
-      // Registration placeholder
-      alert(`Registering user: ${username}, Email: ${email}, PIN: ${pin}`);
-      return;
-    }
+    try {
+      if (isRegister) {
+        const res = await fetch("/api/auth/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, email, pin }),
+        });
 
-    const res = await fetch("/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, pin }),
-    });
+        const data = await res.json();
+        if (data.ok) {
+          alert("Registration successful! Please log in.");
+          setIsRegister(false);
+          setUsername("");
+          setEmail("");
+          setPin("");
+        } else {
+          alert(data.error || "Registration failed");
+        }
+      } else {
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, pin }),
+        });
 
-    const data = await res.json();
-    if (data.ok) {
-      router.push("/");
-    } else {
-      alert(data.error || "Login failed");
+        const data = await res.json();
+        if (data.ok) {
+          router.push("/");
+        } else {
+          alert(data.error || "Login failed");
+        }
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="flex min-h-screen bg-gradient-to-r from-gray-900 via-black to-gray-900 text-white">
-      {/* Left Side with Luxury Visual */}
-      {/* Left Side with Luxury Visual */}
+      {/* Left side with background */}
       <div className="hidden lg:flex lg:w-1/2 relative items-center justify-center overflow-hidden">
-        {/* Background image */}
         <div
           className="absolute inset-0 bg-cover bg-top"
           style={{ backgroundImage: "url('/images/login_bg.png')" }}
         ></div>
-
-        {/* Model image covering full height */}
         <img
           src="/images/login_model.png"
           alt="Login model"
           className="absolute inset-0 w-full h-full object-cover"
         />
-
-        {/* LuxeSecure text */}
         <h1
           className={`${playfair.className} relative bottom-[-300px] z-10 text-6xl font-extrabold tracking-widest drop-shadow-lg text-yellow-100`}
         >
@@ -75,10 +86,7 @@ export default function Login() {
           {isRegister ? "Create Account" : "Welcome Back"}
         </h2>
 
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-5 max-w-sm mx-auto w-full"
-        >
+        <form onSubmit={handleSubmit} className="space-y-5 max-w-sm mx-auto w-full">
           {/* Username */}
           <input
             type="text"
@@ -88,7 +96,7 @@ export default function Login() {
             className="w-full px-4 py-3 border border-amber-500 rounded-xl text-center focus:ring-1 focus:ring-amber-600 text-[#3E2C1C] shadow-sm bg-white/90 placeholder-gray-400"
           />
 
-          {/* Email only for Register */}
+          {/* Email only for register */}
           {isRegister && (
             <input
               type="email"
@@ -99,7 +107,7 @@ export default function Login() {
             />
           )}
 
-          {/* PIN (hidden input + keypad) */}
+          {/* PIN */}
           <input
             type="password"
             placeholder="PIN"
@@ -108,7 +116,7 @@ export default function Login() {
             className="w-full px-4 py-3 border border-amber-500 rounded-xl text-center tracking-[0.6em] focus:ring-1 focus:ring-amber-600 text-[#3E2C1C] shadow-sm bg-white/90 placeholder-gray-400"
           />
 
-          {/* Luxurious Keypad */}
+          {/* Keypad */}
           <div className="grid grid-cols-3 gap-4 w-full">
             {[1, 2, 3, 4, 5, 6, 7, 8, 9, "Clear", 0, "Del"].map((item) => (
               <button
@@ -129,9 +137,20 @@ export default function Login() {
           {/* Submit */}
           <button
             type="submit"
-            className="w-full bg-amber-600 text-white font-semibold py-3 px-4 rounded-xl shadow-md hover:bg-amber-700 transition-all"
+            disabled={loading}
+            className={`w-full font-semibold py-3 px-4 rounded-xl shadow-md transition-all ${
+              loading
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-amber-600 text-white hover:bg-amber-700"
+            }`}
           >
-            {isRegister ? "Register" : "Login"}
+            {loading
+              ? isRegister
+                ? "Registering..."
+                : "Logging in..."
+              : isRegister
+              ? "Register"
+              : "Login"}
           </button>
         </form>
 
@@ -140,8 +159,9 @@ export default function Login() {
           {isRegister ? "Already have an account?" : "Don’t have an account?"}{" "}
           <button
             type="button"
+            disabled={loading}
             onClick={() => setIsRegister((prev) => !prev)}
-            className="text-amber-700 font-bold hover:underline"
+            className="text-amber-700 font-bold hover:underline disabled:opacity-50"
           >
             {isRegister ? "Login" : "Register"}
           </button>

@@ -27,7 +27,7 @@ export default async function handler(req, res) {
       .fontSize(12)
       .fillColor("black")
       .text(`${i + 1}. ${exp.title}`, { continued: true })
-      .fillColor("blue")
+      .fillColor("amber")
       .text(`  ₦${Number(exp.amount).toLocaleString()}`, { align: "right" });
 
     doc

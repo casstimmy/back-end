@@ -2,8 +2,9 @@
 import mongoose from "mongoose";
 
 const UserSchema = new mongoose.Schema({
-  username: { type: String, unique: true },
-  pinHash: String,
+  username: { type: String, unique: true, required: true },
+  email: { type: String, unique: true, required: true },
+  pinHash: { type: String, required: true },
   isAdmin: { type: Boolean, default: false },
 });
 

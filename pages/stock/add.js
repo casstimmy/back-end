@@ -155,7 +155,7 @@ export default function StockMovementAdd() {
       <div className="p-8 bg-gray-50 min-h-screen space-y-6">
         <h1 className="text-2xl font-semibold text-gray-700">
           Stock Movement Add{" "}
-          <span className="text-blue-500 text-sm">HELP</span>
+          <span className="text-amber-500 text-sm">HELP</span>
         </h1>
 
         {/* Header Form */}
@@ -211,7 +211,7 @@ export default function StockMovementAdd() {
                 {products.map((product) => (
                   <li
                     key={product._id}
-                    className="px-3 py-2 hover:bg-blue-100 cursor-pointer"
+                    className="px-3 py-2 hover:bg-amber-100 cursor-pointer"
                     onClick={() => handleProductSelect(product)}
                   >
                     {product.name} — ₦{product.salePriceIncTax}
@@ -224,7 +224,7 @@ export default function StockMovementAdd() {
           <div className="flex items-center gap-2 pt-2">
             <button
               onClick={() => setQuantityInput((q) => Math.max(q - 1, 1))}
-              className="bg-blue-100 text-lg w-8 h-8"
+              className="bg-amber-100 text-lg w-8 h-8"
             >
               -
             </button>
@@ -238,7 +238,7 @@ export default function StockMovementAdd() {
             />
             <button
               onClick={() => setQuantityInput((q) => q + 1)}
-              className="bg-blue-100 text-lg w-8 h-8"
+              className="bg-amber-100 text-lg w-8 h-8"
             >
               +
             </button>
@@ -288,7 +288,7 @@ export default function StockMovementAdd() {
                     <td className="px-4 py-2">
                       <button
                         onClick={() => removeProduct(p._id)}
-                        className="text-blue-500 text-xs"
+                        className="text-amber-500 text-xs"
                       >
                         REMOVE
                       </button>

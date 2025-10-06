@@ -7,12 +7,18 @@ export default withSessionRoute(async function loginRoute(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
   try {
-    const { username, pin } = req.body;
+    const { username, pin } = req.body; 
     await mongooseConnect();
 
     // --- Auto Admin Login ---
     if (username === "admin" && pin === "1234") {
-      req.session.user = { id: "admin-id", username: "admin", isAdmin: true, name: "Admin" };
+      req.session.user = { 
+        id: "admin-id", 
+        username: "admin", 
+        email: "admin@example.com", // optional placeholder
+        isAdmin: true, 
+        name: "Admin" 
+      };
       await req.session.save();
       return res.json({ ok: true, user: req.session.user });
     }
@@ -27,6 +33,7 @@ export default withSessionRoute(async function loginRoute(req, res) {
     req.session.user = {
       id: user._id,
       username: user.username,
+      email: user.email, // still stored in session if needed
       isAdmin: user.isAdmin,
       name: user.username,
     };

@@ -16,7 +16,7 @@ const TransactionSchema = new mongoose.Schema({
   tenderType: String,
   amountPaid: Number,
   total: Number,
-  staff: { type: mongoose.Schema.Types.ObjectId, ref: "Staff" },
+  staff: { type: String, default: "Online User" },
 location: String,
   device: String,
   tableName: String,

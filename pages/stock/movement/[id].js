@@ -81,11 +81,11 @@ if (!movement)
         <div className="flex justify-between items-center mb-4">
           <h1 className="text-2xl font-bold text-gray-800">
             Stock Movement Details{" "}
-            <span className="text-sm text-blue-500 ml-2 cursor-pointer hover:underline">
+            <span className="text-sm text-amber-500 ml-2 cursor-pointer hover:underline">
               HELP
             </span>
           </h1>
-          <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 text-sm font-semibold">
+          <button className="bg-amber-500 text-white px-4 py-2 rounded hover:bg-amber-600 text-sm font-semibold">
             PRINT LABELS
           </button>
         </div>
@@ -138,7 +138,7 @@ if (!movement)
           {/* Products Table */}
           <div className="bg-white rounded shadow p-4 mb-8 overflow-x-auto">
             <table className="min-w-full text-sm text-left">
-              <thead className="bg-blue-100 font-semibold">
+              <thead className="bg-amber-100 font-semibold">
                 <tr>
                   <th className="px-4 py-2">Product</th>
                   <th className="px-4 py-2">Unit Cost Price</th>
@@ -165,7 +165,7 @@ if (!movement)
                     </tr>
                   );
                 })}
-                <tr className="bg-blue-500 text-white font-bold">
+                <tr className="bg-amber-500 text-white font-bold">
                   <td className="px-4 py-2" colSpan={4}>
                     Total:
                   </td>
@@ -186,7 +186,7 @@ if (!movement)
           </button>
           <button
             onClick={() => router.push(`/stock/movement/edit/${id}`)}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm"
+            className="bg-amber-600 text-white px-4 py-2 rounded hover:bg-amber-700 text-sm"
           >
             EDIT / RECEIVE
           </button>

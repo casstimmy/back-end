@@ -122,7 +122,7 @@ export default function PersonalTaxCalculator() {
               placeholder="e.g. 500000"
               value={grossIncome}
               onChange={(e) => setGrossIncome(e.target.value)}
-              className="w-full border border-gray-300 px-4 py-2 rounded shadow-sm focus:ring-blue-400 focus:ring-2"
+              className="w-full border border-gray-300 px-4 py-2 rounded shadow-sm focus:ring-amber-400 focus:ring-2"
             />
           </div>
           <div>
@@ -134,7 +134,7 @@ export default function PersonalTaxCalculator() {
               placeholder="e.g. 40000"
               value={pension}
               onChange={(e) => setPension(e.target.value)}
-              className="w-full border border-gray-300 px-4 py-2 rounded shadow-sm focus:ring-blue-400 focus:ring-2"
+              className="w-full border border-gray-300 px-4 py-2 rounded shadow-sm focus:ring-amber-400 focus:ring-2"
             />
           </div>
         </div>
@@ -184,7 +184,7 @@ export default function PersonalTaxCalculator() {
         {/* Calculate Button */}
         <button
           onClick={calculateTax}
-          className="bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg shadow hover:bg-blue-800"
+          className="bg-amber-700 text-white font-semibold px-6 py-2 rounded-lg shadow hover:bg-amber-800"
         >
           Calculate My Tax
         </button>

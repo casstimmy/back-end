@@ -3,308 +3,260 @@ import { Search, X, Mail } from "lucide-react";
 import clsx from "clsx";
 import Layout from "@/components/Layout";
 import axios from "axios";
-import Link from "next/link";
 
 export default function OrderInventoryPage() {
   const [orders, setOrders] = useState([]);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [sendingEmail, setSendingEmail] = useState(false);
 
   const entriesPerPage = 10;
   const statusOptions = ["Pending", "Shipped", "Delivered"];
+  const currency = new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN" });
 
   const statusClass = {
     Pending: "bg-yellow-100 text-yellow-800",
-    Shipped: "bg-blue-100 text-blue-800",
+    Shipped: "bg-amber-100 text-amber-800",
     Delivered: "bg-green-100 text-green-800",
   };
 
-  useEffect(() => {
-    fetchOrders();
-  }, []);
 
-  const fetchOrders = async () => {
+  const fetchOrders = async (page = 1, searchTerm = "") => {
+    setLoading(true);
     try {
-      const { data } = await axios.get("/api/orders");
-      const ordersWithDate = data
-        .map((order) => ({
-          ...order,
-          date: new Date(order.createdAt).toISOString(),
-        }))
-        .sort((a, b) => new Date(b.date) - new Date(a.date));
-      setOrders(ordersWithDate);
-    } catch {
+      const { data } = await axios.get("/api/orders", {
+        params: { page, limit: entriesPerPage, search: searchTerm },
+      });
+      setOrders(data.orders || []);
+      setTotalPages(data.totalPages || 1);
+    } catch (error) {
+      console.error("Failed to fetch orders:", error);
       setOrders([]);
+      setTotalPages(1);
     }
+    setLoading(false);
   };
+
+  useEffect(() => {
+    fetchOrders(currentPage, search);
+  }, [currentPage, search]);
 
   const updateStatus = async (orderId, newStatus) => {
+    setUpdatingStatus(true);
     try {
-      const response = await axios.put(`/api/orders/${orderId}`, {
-        status: newStatus,
-      });
-
-      const updatedOrder = response.data;
-
-      if (newStatus === "Delivered") {
-        await axios.post("/api/transactions/from-order", {
-          orderId: updatedOrder._id,
-        });
-        alert("Order marked as delivered and saved as a transaction.");
-      }
-
+      await axios.put(`/api/orders/${orderId}`, { status: newStatus });
       setOrders((prev) =>
-        prev.map((order) =>
-          order._id === orderId ? { ...order, status: newStatus } : order
-        )
+        prev.map((order) => (order._id === orderId ? { ...order, status: newStatus } : order))
       );
-    } catch {
-      alert("Failed to update status.");
+    } catch (error) {
+      console.error("Failed to update status:", error);
     }
+    setUpdatingStatus(false);
   };
 
-  const filteredOrders = orders.filter(
-    ({ customer, _id }) =>
-      customer?.name?.toLowerCase().includes(search.toLowerCase()) ||
-      _id.toLowerCase().includes(search.toLowerCase())
-  );
+const handleSendEmail = async () => {
+  if (!selectedOrder?.customer?.email) return;
+  setSendingEmail(true);
 
-  const totalPages = Math.ceil(filteredOrders.length / entriesPerPage);
-  const paginatedOrders = filteredOrders.slice(
-    (currentPage - 1) * entriesPerPage,
-    currentPage * entriesPerPage
-  );
-
-  const goToPage = (page) => {
-    if (page < 1 || page > totalPages) return;
-    setCurrentPage(page);
+  const customerData = {
+    name: selectedOrder.customer.name || "Customer",
+    orderId: selectedOrder._id,
+    status: selectedOrder.status,
+    total: new Intl.NumberFormat("en-NG", { style: "currency", currency: "NGN" }).format(
+      selectedOrder.total ?? 0
+    ),
+    products: (selectedOrder.cartProducts || []).map((p) => ({
+      name: p.name,
+      quantity: p.quantity,
+      price: p.price,
+    })),
   };
 
-  const handleSendEmail = async () => {
-    if (!selectedOrder?.customer?.email) {
-      alert("Customer email not available.");
-      return;
-    }
+  try {
+    await axios.post("/api/send-email", {
+      to: selectedOrder.customer.email,
+      subject: "Your Order Details from Oma Hub",
+      customer: customerData,
+    });
+    setSelectedOrder(null);
+  } catch (error) {
+    console.error("Failed to send email:", error);
+  }
 
-    const subject = "Your Order Details from Our Store";
+  setSendingEmail(false);
+};
 
-    const productLines = (selectedOrder.products || [])
-      .map(
-        (p) =>
-          `- ${p.name} x ${p.quantity} = ₦${(p.price * p.quantity).toLocaleString()}`
-      )
-      .join("\n");
+console.log("fetchOrders", [orders])
 
-    const body =
-      `Dear ${selectedOrder.customer.name || "Customer"},\n\n` +
-      `Here are the details of your order (ID: ${selectedOrder._id}):\n\n` +
-      (productLines || "No product details available.") +
-      `\n\nTotal: ₦${(selectedOrder.total || 0).toLocaleString()}` +
-      `\nStatus: ${selectedOrder.status}\n\nThank you for shopping with us!`;
-
-    try {
-      await axios.post("/api/send-email", {
-        to: selectedOrder.customer.email,
-        subject,
-        text: body,
-      });
-      alert("Email sent successfully.");
-      setSelectedOrder(null);
-    } catch {
-      alert("Failed to send email.");
-    }
-  };
 
   return (
     <Layout>
-      <div className="w-full border-b p-4 shadow-md">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-3xl text-blue-900 font-bold mb-2">Order Inventory</h1>
-          <Link href="">
-            <div className="py-2 px-6 bg-blue-600 text-white rounded-sm">
-              Order Inventory
-            </div>
-          </Link>
-        </div>
+      <div className="px-6 py-6">
+        <h1 className="text-3xl font-bold text-amber-900 mb-6">Order Inventory</h1>
 
         {/* Search */}
-        <div className="flex flex-col gap-8 sm:flex-row items-center justify-between mb-4 w-full">
-          <div className="relative w-full">
-            <span className="absolute left-3 top-3.5 text-gray-400">
-              <Search className="w-5 h-5" />
-            </span>
-            <input
-              type="search"
-              placeholder="Search by customer or order ID"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="w-full pl-10 pr-4 py-3 border rounded-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-200 text-gray-700"
-            />
-          </div>
+        <div className="mb-4 relative max-w-md">
+          <Search className="absolute left-3 top-3.5 text-gray-400 w-5 h-5" />
+          <input
+            type="search"
+            placeholder="Search by customer or order ID"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="w-full pl-10 pr-4 py-3 border rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+          />
         </div>
 
-        {/* Orders Table */}
-        <table className="w-full border-collapse table-auto">
-          <thead className="bg-gray-100">
-            <tr>
-              {["Order ID", "Customer", "Total (₦)", "Status", "Date"].map(
-                (header) => (
-                  <th
-                    key={header}
-                    className="text-left text-xs font-semibold text-gray-600 uppercase py-3 px-4 border-b"
-                  >
-                    {header}
-                  </th>
-                )
-              )}
-            </tr>
-          </thead>
-          <tbody>
-            {paginatedOrders.length === 0 ? (
+        {/* Table */}
+        <div className="overflow-x-auto shadow-md rounded-lg">
+          <table className="min-w-full text-sm sm:text-base border-collapse">
+            <thead className="bg-gray-100 rounded-t-lg">
               <tr>
-                <td colSpan={5} className="text-center py-10 text-gray-400 italic">
-                  No orders found.
-                </td>
+                {["Order ID", "Customer", "Total", "Status", "Date"].map((h) => (
+                  <th key={h} className="text-left font-semibold py-3 px-4 border-b">
+                    {h}
+                  </th>
+                ))}
               </tr>
-            ) : (
-              paginatedOrders.map(({ _id, customer, total, status, date }) => (
-                <tr
-                  key={_id}
-                  onClick={() => setSelectedOrder(orders.find((o) => o._id === _id))}
-                  className="hover:bg-blue-50 cursor-pointer"
-                >
-                  <td className="font-mono text-blue-700 px-4 py-3">{_id}</td>
-                  <td className="px-4 py-3">{customer?.name || "N/A"}</td>
-                  <td className="font-semibold text-gray-900 px-4 py-3">
-                    ₦{(total ?? 0).toLocaleString(undefined, {
-                      minimumFractionDigits: 2,
-                    })}
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <select
-                      value={status}
-                      onClick={(e) => e.stopPropagation()}
-                      onChange={(e) => updateStatus(_id, e.target.value)}
-                      className={clsx(
-                        "px-3 py-1 rounded-full text-xs font-semibold",
-                        statusClass[status] || "bg-gray-200 text-gray-600"
-                      )}
-                    >
-                      {statusOptions.map((opt) => (
-                        <option key={opt} value={opt}>
-                          {opt}
-                        </option>
-                      ))}
-                    </select>
-                  </td>
-                  <td className="px-4 py-3">
-                    {date
-                      ? new Date(date).toLocaleDateString("en-NG", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })
-                      : "N/A"}
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={5} className="text-center py-6 text-gray-500">
+                    Loading orders...
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : orders.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="text-center py-6 italic text-gray-400">
+                    No orders found.
+                  </td>
+                </tr>
+              ) : (
+                orders.map((order) => (
+                  <tr
+                    key={order._id}
+                    onClick={() => setSelectedOrder(order)}
+                    className="hover:bg-amber-50 cursor-pointer transition"
+                  >
+                    <td className="font-mono text-amber-700 px-4 py-2">{order._id}</td>
+                    <td className="px-4 py-2">{order.customer?.name || "N/A"}</td>
+                    <td className="font-semibold px-4 py-2">{currency.format(order.total ?? 0)}</td>
+                    <td className="px-4 py-2 text-center">
+                      <select
+                        value={order.status}
+                        disabled={updatingStatus}
+                        onClick={(e) => e.stopPropagation()}
+                        onChange={(e) => updateStatus(order._id, e.target.value)}
+                        className={clsx(
+                          "px-2 py-1 rounded-full text-xs font-semibold",
+                          statusClass[order.status] || "bg-gray-200 text-gray-600"
+                        )}
+                      >
+                        {statusOptions.map((opt) => (
+                          <option key={opt} value={opt}>
+                            {opt}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="px-4 py-2">
+                      {new Date(order.createdAt).toLocaleDateString("en-NG")}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
 
         {/* Pagination */}
-        <nav className="mt-6 flex justify-center space-x-2" aria-label="Pagination">
+        <div className="mt-6 flex justify-center gap-2">
           <button
-            onClick={() => goToPage(currentPage - 1)}
+            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
             disabled={currentPage === 1}
-            className={clsx(
-              "px-3 py-1 rounded border transition",
-              currentPage === 1
-                ? "text-gray-400 border-gray-300 cursor-not-allowed"
-                : "text-blue-600 border-blue-600 hover:bg-blue-100"
-            )}
+            className="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
           >
             Previous
           </button>
-
           {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
             <button
               key={page}
-              onClick={() => goToPage(page)}
+              onClick={() => setCurrentPage(page)}
               className={clsx(
-                "px-3 py-1 rounded border transition",
-                page === currentPage
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "text-blue-600 border-blue-600 hover:bg-blue-100"
+                "px-3 py-1 rounded hover:bg-amber-100",
+                page === currentPage && "bg-amber-500 text-white"
               )}
             >
               {page}
             </button>
           ))}
-
           <button
-            onClick={() => goToPage(currentPage + 1)}
+            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
             disabled={currentPage === totalPages}
-            className={clsx(
-              "px-3 py-1 rounded border transition",
-              currentPage === totalPages
-                ? "text-gray-400 border-gray-300 cursor-not-allowed"
-                : "text-blue-600 border-blue-600 hover:bg-blue-100"
-            )}
+            className="px-3 py-1 rounded bg-gray-100 hover:bg-gray-200 disabled:opacity-50"
           >
             Next
           </button>
-        </nav>
-      </div>
-
-      {/* Order Details Modal */}
-      {selectedOrder && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50"
-          role="dialog"
-          aria-modal="true"
-        >
-          <div className="bg-white rounded-lg shadow-lg max-w-lg w-full p-6 relative max-h-[90vh] overflow-y-auto">
-            <button
-              onClick={() => setSelectedOrder(null)}
-              className="absolute top-2 right-2 text-gray-500 hover:text-red-500"
-              aria-label="Close"
-            >
-              <X />
-            </button>
-            <h3 className="text-xl font-bold mb-4">Order Details</h3>
-            <p><strong>Order ID:</strong> {selectedOrder._id}</p>
-            <p><strong>Customer:</strong> {selectedOrder.customer?.name || "N/A"}</p>
-            <p><strong>Email:</strong> {selectedOrder.customer?.email || "N/A"}</p>
-            <p><strong>Phone:</strong> {selectedOrder.customer?.phone || "N/A"}</p>
-            <p><strong>Total:</strong> ₦{(selectedOrder.total ?? 0).toLocaleString()}</p>
-            <p><strong>Status:</strong> {selectedOrder.status}</p>
-            <p><strong>Date:</strong> {new Date(selectedOrder.createdAt).toLocaleString()}</p>
-            <hr className="my-4" />
-            <div>
-              <strong>Products:</strong>
-              <ul className="list-disc list-inside mt-2 text-sm text-gray-700">
-                {(selectedOrder.products || []).map((product, idx) => (
-                  <li key={idx}>
-                    {product.name} x {product.quantity} - ₦{((product.price || 0) * (product.quantity || 0)).toLocaleString()}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <button
-              onClick={handleSendEmail}
-              className="mt-6 w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded shadow transition"
-            >
-              <Mail className="w-4 h-4" />
-              Send Email to Customer
-            </button>
-          </div>
         </div>
-      )}
+
+        {/* Order Modal */}
+        {selectedOrder && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 p-4">
+            <div className="bg-white rounded-lg p-6 max-w-lg w-full max-h-[90vh] overflow-y-auto relative shadow-lg">
+              <button
+                onClick={() => setSelectedOrder(null)}
+                className="absolute top-3 right-3 text-gray-500 hover:text-red-500"
+              >
+                <X />
+              </button>
+              <h3 className="text-xl font-bold mb-4">Order Details</h3>
+              <p>
+                <strong>Order ID:</strong> {selectedOrder._id}
+              </p>
+              <p>
+                <strong>Customer:</strong> {selectedOrder.customer?.name || "N/A"}
+              </p>
+              <p>
+                <strong>Email:</strong> {selectedOrder.customer?.email || "N/A"}
+              </p>
+              <p>
+                <strong>Total:</strong> {currency.format(selectedOrder.total ?? 0)}
+              </p>
+              <p>
+                <strong>Status:</strong> {selectedOrder.status}
+              </p>
+              <p>
+                <strong>Date:</strong> {new Date(selectedOrder.createdAt).toLocaleString()}
+              </p>
+              <hr className="my-4" />
+              <div>
+                <strong>Products:</strong>
+                <ul className="list-disc list-inside mt-2 text-sm">
+                  {(selectedOrder.cartProducts || []).map((p, idx) => (
+                    <li key={idx}>
+                      {p.name} x {p.quantity} - {currency.format(p.price * p.quantity)}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <button
+                disabled={sendingEmail}
+                onClick={handleSendEmail}
+                className="mt-6 w-full bg-amber-600 hover:bg-amber-700 text-white py-2 rounded flex items-center justify-center gap-2"
+              >
+                <Mail className="w-4 h-4" /> {sendingEmail ? "Sending..." : "Send Email"}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </Layout>
   );
 }

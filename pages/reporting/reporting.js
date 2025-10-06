@@ -30,6 +30,7 @@ ChartJS.register(
 
 export default function Reporting() {
   const [report, setReport] = useState(null);
+  const [loading, setLoading] = useState(true); // Added loading state
   const [selectedLocation, setSelectedLocation] = useState("All");
   const [selectedDays, setSelectedDays] = useState(14);
   const [granularity, setGranularity] = useState("Day");
@@ -54,24 +55,36 @@ export default function Reporting() {
 
   useEffect(() => {
     async function fetchData() {
-      const query = new URLSearchParams({
-        location: selectedLocation,
-        days: selectedDays,
-        period: granularity,
-      });
-      const res = await fetch(`/api/reporting/reporting-data?${query}`);
-      const data = await res.json();
-      setReport(data);
+      try {
+        setLoading(true);
+        const query = new URLSearchParams({
+          location: selectedLocation,
+          days: selectedDays,
+          period: granularity,
+        });
+        const res = await fetch(`/api/reporting/reporting-data?${query}`);
+        const data = await res.json();
+        setReport(data);
+      } catch (err) {
+        console.error("Failed to fetch report:", err);
+      } finally {
+        setLoading(false);
+      }
     }
     fetchData();
   }, [selectedLocation, selectedDays, granularity]);
 
-  if (!report)
+  if (loading) {
     return (
-      <Layout>
-        <div className="p-6">Loading...</div>
+      <Layout title="Reporting">
+        <div className="flex justify-center items-center h-[70vh]">
+          <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+        </div>
       </Layout>
     );
+  }
+
+  if (!report) return null; // in case of error, show nothing
 
   const {
     dates = [],
@@ -132,7 +145,7 @@ export default function Reporting() {
     labels: dates,
     datasets: Object.entries(salesByEmployee).map(([name, values], i) => ({
       label: name,
-      data: values, // use the array directly, no mapping
+      data: values,
       fill: true,
       backgroundColor: `rgba(${80 + i * 30}, ${150 - i * 20}, 250, 0.5)`,
     })),
@@ -188,8 +201,8 @@ export default function Reporting() {
                 onClick={() => handleGranularityChange(period)}
                 className={`text-sm px-2 py-1 border rounded ${
                   granularity === period
-                    ? "bg-blue-600 text-white"
-                    : "text-blue-600 border-blue-600"
+                    ? "bg-amber-600 text-white"
+                    : "text-amber-600 border-amber-600"
                 }`}
               >
                 {period}
@@ -204,7 +217,7 @@ export default function Reporting() {
             data={combinedLineData}
             options={{
               responsive: true,
-              maintainAspectRatio: false, // Important: allows custom height
+              maintainAspectRatio: false,
               scales: {
                 y: {
                   beginAtZero: true,
@@ -227,10 +240,7 @@ export default function Reporting() {
             title="Total Sales"
             value={`₦${summary.totalSales?.toLocaleString()}`}
           />
-          <Card
-            title="Total Transactions"
-            value={summary.totalTransactions || 0}
-          />
+          <Card title="Total Transactions" value={summary.totalTransactions || 0} />
           <Card title="Low Stock Items" value={summary.lowStockItems || 0} />
           <Card
             title="Operating Margin"
@@ -240,10 +250,7 @@ export default function Reporting() {
             title="Total Cost"
             value={`₦${summary.totalCost?.toLocaleString() || 0}`}
           />
-          <Card
-            title="Gross Margin"
-            value={`₦${stockMargin?.toLocaleString() || 0}`}
-          />
+          <Card title="Gross Margin" value={`₦${stockMargin?.toLocaleString() || 0}`} />
           <Card
             title="Average Txn"
             value={`₦${averageTransaction.toLocaleString(undefined, {
@@ -289,7 +296,7 @@ function Card({ title, value }) {
   return (
     <div className="bg-white p-4 rounded shadow text-center">
       <div className="text-sm text-gray-500 mb-1">{title}</div>
-      <div className="text-xl font-bold text-blue-700">{value}</div>
+      <div className="text-xl font-bold text-amber-700">{value}</div>
     </div>
   );
 }

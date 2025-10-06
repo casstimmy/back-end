@@ -1,3 +1,4 @@
+// components/Layout.js
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Nav from "@/components/Nav";
@@ -5,6 +6,7 @@ import NavBar from "@/components/NavBar";
 
 export default function Layout({ children }) {
   const [user, setUser] = useState(null);
+  const [isNavOpen, setIsNavOpen] = useState(false); // for mobile
   const router = useRouter();
 
   useEffect(() => {
@@ -12,25 +14,25 @@ export default function Layout({ children }) {
       .then((res) => res.json())
       .then((data) => {
         if (data.user) setUser(data.user);
-        else router.push("/login"); // redirect if not logged in
+        else router.push("/login");
       });
   }, [router]);
 
-  if (!user) {
-    return null; // or loading spinner
-  }
+  if (!user) return null; // add spinner if desired
+
+  const toggleNav = () => setIsNavOpen(!isNavOpen);
+  const closeNav = () => setIsNavOpen(false);
 
   return (
-    <div>
-      <div className="bg-slate-50 min-h-screen flex">
-        <Nav className="fixed top-24 left-0 h-full w-[5rem] z-10" />
-        <div className="ml-[5rem] w-full flex justify-center overflow-hidden">
-          <div className="w-full max-w-[calc(100%-42px)] p-6 mt-20 bg-slate-100">
-            {children}
-          </div>
-        </div>
-      </div>
-      <NavBar />
+    <div className="min-h-screen flex flex-col">
+      {/* Top NavBar */}
+      <NavBar onMenuToggle={toggleNav} user={user} />
+
+      {/* Sidebar / Nav */}
+      <Nav isOpen={isNavOpen} onClose={closeNav} />
+
+      {/* Main Content */}
+      <main className="pt-16 sm:pt-16 sm:pl-20 flex-1 bg-slate-50">{children}</main>
     </div>
   );
 }

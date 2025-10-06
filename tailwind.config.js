@@ -8,8 +8,11 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        'custom-gray-500': '#6B7280', // Define a custom gray color
+        'custom-gray-500': '#6B7280',
       },
+       fontFamily: {
+             playfair: ['"Playfair Display"', 'serif']
+          },
     },
   },
   plugins: [],

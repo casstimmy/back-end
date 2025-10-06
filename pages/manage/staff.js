@@ -4,6 +4,7 @@ import Layout from "@/components/Layout";
 
 export default function StaffPage() {
   const [staffList, setStaffList] = useState([]);
+  const [loading, setLoading] = useState(true); // Loading state added
   const [formData, setFormData] = useState({
     name: "",
     username: "",
@@ -15,11 +16,14 @@ export default function StaffPage() {
 
   const fetchStaff = async () => {
     try {
+      setLoading(true);
       const res = await axios.get("/api/staff");
       setStaffList(res.data);
     } catch (err) {
       console.error("API Error:", err.response?.data || err.message);
       alert("Failed to fetch staff");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -75,7 +79,9 @@ export default function StaffPage() {
   return (
     <Layout>
       <div className="p-6 w-full mx-auto">
-        <h1 className="text-3xl font-bold mb-6 text-gray-800">Staff Management</h1>
+        <h1 className="text-2xl sm:text-3xl text-amber-900 font-bold mb-6">
+          Staff Management
+        </h1>
 
         {/* Form Card */}
         <div className="bg-white shadow-md rounded-sm p-6 mb-8">
@@ -86,14 +92,14 @@ export default function StaffPage() {
               placeholder="Name"
               value={formData.name}
               onChange={handleInputChange}
-              className="border px-3 py-2 rounded-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              className="border px-3 py-2 rounded-sm focus:ring-2 focus:ring-amber-500 outline-none"
             />
             <input
               name="username"
               placeholder="Username"
               value={formData.username}
               onChange={handleInputChange}
-              className="border px-3 py-2 rounded-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              className="border px-3 py-2 rounded-sm focus:ring-2 focus:ring-amber-500 outline-none"
             />
             <input
               name="password"
@@ -101,11 +107,11 @@ export default function StaffPage() {
               type="password"
               value={formData.password}
               onChange={handleInputChange}
-              className="border px-3 py-2 rounded-sm focus:ring-2 focus:ring-blue-500 outline-none"
+              className="border px-3 py-2 rounded-sm focus:ring-2 focus:ring-amber-500 outline-none"
             />
             <button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-sm transition"
+              className="bg-amber-600 hover:bg-amber-700 text-white font-medium py-2 px-4 rounded-sm transition"
             >
               Add Staff
             </button>
@@ -114,86 +120,94 @@ export default function StaffPage() {
 
         {/* Staff Table */}
         <div className="overflow-auto bg-white shadow-md rounded-sm">
-          <table className="min-w-full text-sm text-left border-collapse">
-            <thead className="bg-gray-100 text-gray-700">
-              <tr>
-                <th className="py-3 px-4 font-semibold">Name</th>
-                <th className="py-3 px-4 font-semibold">Username</th>
-                <th className="py-3 px-4 font-semibold">Role</th>
-                <th className="py-3 px-4 font-semibold text-center">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {staffList.map((staff) => (
-                <tr key={staff._id} className="border-t hover:bg-gray-50">
-                  <td className="py-3 px-4">
-                    {editingId === staff._id ? (
-                      <input
-                        name="name"
-                        value={editData.name}
-                        onChange={handleEditChange}
-                        className="border px-2 py-1 rounded w-full"
-                      />
-                    ) : (
-                      staff.name
-                    )}
-                  </td>
-                  <td className="py-3 px-4">
-                    {editingId === staff._id ? (
-                      <input
-                        name="username"
-                        value={editData.username}
-                        onChange={handleEditChange}
-                        className="border px-2 py-1 rounded w-full"
-                      />
-                    ) : (
-                      staff.username
-                    )}
-                  </td>
-                  <td className="py-3 px-4">
-                    {editingId === staff._id ? (
-                      <select
-                        name="role"
-                        value={editData.role}
-                        onChange={handleEditChange}
-                        className="border px-2 py-1 rounded w-full"
-                      >
-                        <option value="staff">Staff</option>
-                        <option value="manager">Manager</option>
-                      </select>
-                    ) : (
-                      <span className="capitalize">{staff.role}</span>
-                    )}
-                  </td>
-                  <td className="py-3 px-4 text-center">
-                    {editingId === staff._id ? (
-                      <div className="flex justify-center gap-2">
-                        <button
-                          onClick={() => saveEdit(staff._id)}
-                          className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded"
-                        >
-                          Save
-                        </button>
-                        <button
-                          onClick={cancelEditing}
-                          className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-1 rounded"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => startEditing(staff)}
-                        className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
-                      >
-                        Edit
-                      </button>
-                    )}
-                  </td>
+          {loading ? (
+            <div className="flex justify-center items-center h-48">
+              <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : staffList.length === 0 ? (
+            <p className="text-center text-gray-500 py-8">No staff members found.</p>
+          ) : (
+            <table className="min-w-full text-sm text-left border-collapse">
+              <thead className="bg-gray-100 text-gray-700">
+                <tr>
+                  <th className="py-3 px-4 font-semibold">Name</th>
+                  <th className="py-3 px-4 font-semibold">Username</th>
+                  <th className="py-3 px-4 font-semibold">Role</th>
+                  <th className="py-3 px-4 font-semibold text-center">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {staffList.map((staff) => (
+                  <tr key={staff._id} className="border-t hover:bg-gray-50">
+                    <td className="py-3 px-4">
+                      {editingId === staff._id ? (
+                        <input
+                          name="name"
+                          value={editData.name}
+                          onChange={handleEditChange}
+                          className="border px-2 py-1 rounded w-full"
+                        />
+                      ) : (
+                        staff.name
+                      )}
+                    </td>
+                    <td className="py-3 px-4">
+                      {editingId === staff._id ? (
+                        <input
+                          name="username"
+                          value={editData.username}
+                          onChange={handleEditChange}
+                          className="border px-2 py-1 rounded w-full"
+                        />
+                      ) : (
+                        staff.username
+                      )}
+                    </td>
+                    <td className="py-3 px-4">
+                      {editingId === staff._id ? (
+                        <select
+                          name="role"
+                          value={editData.role}
+                          onChange={handleEditChange}
+                          className="border px-2 py-1 rounded w-full"
+                        >
+                          <option value="staff">Staff</option>
+                          <option value="manager">Manager</option>
+                        </select>
+                      ) : (
+                        <span className="capitalize">{staff.role}</span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4 text-center">
+                      {editingId === staff._id ? (
+                        <div className="flex justify-center gap-2">
+                          <button
+                            onClick={() => saveEdit(staff._id)}
+                            className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded"
+                          >
+                            Save
+                          </button>
+                          <button
+                            onClick={cancelEditing}
+                            className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-1 rounded"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => startEditing(staff)}
+                          className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded"
+                        >
+                          Edit
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
     </Layout>

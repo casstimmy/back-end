@@ -5,20 +5,25 @@ export default function StockManagement() {
   const [products, setProducts] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
 
-  useEffect(() => {
-    async function fetchProducts() {
-      try {
-        const res = await fetch("/api/products");
-        if (!res.ok) throw new Error("Failed to fetch products");
-        const data = await res.json();
-        setProducts(data);
-      } catch (error) {
-        console.error(error);
-      }
-    }
+useEffect(() => {
+  async function fetchProducts() {
+    try {
+      const res = await fetch("/api/products");
+      if (!res.ok) throw new Error("Failed to fetch products");
 
-    fetchProducts();
-  }, []);
+      const data = await res.json();
+
+      // Ensure products is always an array
+      setProducts(Array.isArray(data) ? data : data.products || []);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      setProducts([]); // fallback to empty array
+    }
+  }
+
+  fetchProducts();
+}, []);
+
 
   const filteredItems = products.filter(
     (item) =>
@@ -35,7 +40,7 @@ export default function StockManagement() {
     <Layout>
       <div className="min-h-screen bg-gray-50 p-8">
         <header className="mb-10">
-          <h1 className="text-3xl text-blue-900 font-bold mb-2">Stock Management</h1>
+          <h1 className="text-3xl text-amber-900 font-bold mb-2">Stock Management</h1>
           <p className="text-gray-600">Monitor all stock levels and alerts in real-time.</p>
         </header>
 
@@ -52,7 +57,7 @@ export default function StockManagement() {
             placeholder="Search by product or category..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full px-4 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-600"
+            className="w-full px-4 py-2 border rounded shadow-sm focus:outline-none focus:ring-2 focus:ring-amber-600"
           />
         </div>
 

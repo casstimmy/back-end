@@ -27,26 +27,25 @@ export default function StockMovement() {
   const [barcode, setBarcode] = useState("");
 
   useEffect(() => {
-  async function fetchStockMovements() {
-    try {
-      const res = await fetch("../../api/stock-movement/get");
-      const data = await res.json();
+    async function fetchStockMovements() {
+      try {
+        const res = await fetch("../../api/stock-movement/get");
+        const data = await res.json();
 
-      if (Array.isArray(data)) {
-        setMovements(data);
-      } else {
-        console.warn("Expected array but got:", data);
+        if (Array.isArray(data)) {
+          setMovements(data);
+        } else {
+          console.warn("Expected array but got:", data);
+          setMovements([]);
+        }
+      } catch (err) {
+        console.error("Error fetching stock movements:", err);
         setMovements([]);
       }
-    } catch (err) {
-      console.error("Error fetching stock movements:", err);
-      setMovements([]);
     }
-  }
 
-  fetchStockMovements();
-}, []);
-
+    fetchStockMovements();
+  }, []);
 
   const parseDate = (dateStr) => (dateStr ? new Date(dateStr) : null);
 
@@ -72,15 +71,16 @@ export default function StockMovement() {
   return (
     <Layout>
       <div className="min-h-screen bg-[#f5f9fc] p-8">
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <h1 className="text-2xl font-bold text-gray-800">
             Stock Movements{" "}
-            <span className="text-sm text-blue-500 ml-1 cursor-pointer hover:underline">
+            <span className="text-sm text-amber-500 ml-1 cursor-pointer hover:underline">
               HELP
             </span>
           </h1>
+
           <Link href="../stock/add">
-            <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm font-semibold">
+            <button className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded text-sm font-semibold w-full sm:w-auto">
               ADD STOCK MOVEMENT
             </button>
           </Link>
@@ -179,7 +179,7 @@ export default function StockMovement() {
 
           <button
             onClick={() => null}
-            className="bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold px-6 py-2 rounded"
+            className="bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold px-6 py-2 rounded"
           >
             SEARCH
           </button>
@@ -254,7 +254,7 @@ export default function StockMovement() {
                     </td>
                     <td className="px-6 py-3 text-right">
                       <Link href={`/stock/movement/${item._id}`}>
-                        <span className="inline-block bg-blue-100 hover:bg-blue-200 text-blue-800 font-medium px-3 py-1 rounded text-xs shadow-sm transition duration-150 ease-in-out">
+                        <span className="inline-block bg-amber-100 hover:bg-amber-200 text-amber-800 font-medium px-3 py-1 rounded text-xs shadow-sm transition duration-150 ease-in-out">
                           VIEW DETAILS
                         </span>
                       </Link>

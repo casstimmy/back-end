@@ -61,7 +61,7 @@ export default function TaxAnalysisPage() {
                 icon={faScaleBalanced}
                 label="Revenue Band"
                 value={taxData.band}
-                color="bg-blue-100"
+                color="bg-amber-100"
               />
               <StatBox
                 icon={faChartLine}

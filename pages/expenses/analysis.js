@@ -4,7 +4,6 @@ import {
   Download,
   Mail,
   Share2,
-  Filter,
   BarChart2,
   PieChart as PieIcon,
 } from "lucide-react";
@@ -41,7 +40,7 @@ export default function ExpenseAnalysis() {
     maxAmount: "",
     startDate: "",
     endDate: "",
-    location: "",
+    exactDate: "",
   });
 
   useEffect(() => {
@@ -61,15 +60,11 @@ export default function ExpenseAnalysis() {
   ];
 
   const applyFilters = (expense) => {
-    const { category, minAmount, maxAmount, startDate, endDate, location } =
-      filters;
+    const { category, minAmount, maxAmount, startDate, endDate } = filters;
     const amount = Number(expense.amount);
     const date = new Date(expense.createdAt);
     return (
       (!category || expense.category?.name === category) &&
-      (!location ||
-        (expense.location &&
-          expense.location.toLowerCase().includes(location.toLowerCase()))) &&
       (!minAmount || amount >= Number(minAmount)) &&
       (!maxAmount || amount <= Number(maxAmount)) &&
       (!startDate || date >= new Date(startDate)) &&
@@ -110,7 +105,7 @@ export default function ExpenseAnalysis() {
     <Layout>
       <div className="max-w-6xl mx-auto px-6 py-10 space-y-10">
         <div>
-          <h1 className="text-4xl font-extrabold text-blue-800">
+          <h1 className="text-4xl font-extrabold text-amber-800">
             Expense Dashboard
           </h1>
           <p className="text-gray-600 text-lg mt-1">
@@ -119,17 +114,15 @@ export default function ExpenseAnalysis() {
         </div>
 
         {/* Filters */}
-        <div className="bg-white p-6 rounded-xl shadow border space-y-4">
-          <h2 className="text-lg font-semibold text-blue-700 flex items-center gap-2">
-            <Filter className="w-5 h-5" /> Filter Expenses
-          </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">Category</label>
             <select
               value={filters.category}
               onChange={(e) =>
                 setFilters({ ...filters, category: e.target.value })
               }
-              className="p-2 border rounded text-gray-700"
+              className="p-2 border rounded w-full text-gray-700"
             >
               <option value="">All Categories</option>
               {allCategories.map((cat, idx) => (
@@ -138,16 +131,10 @@ export default function ExpenseAnalysis() {
                 </option>
               ))}
             </select>
+          </div>
 
-            <input
-              type="text"
-              placeholder="Location"
-              value={filters.location}
-              onChange={(e) =>
-                setFilters({ ...filters, location: e.target.value })
-              }
-              className="p-2 border rounded"
-            />
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">Min Amount</label>
             <input
               type="number"
               placeholder="Min Amount"
@@ -155,8 +142,12 @@ export default function ExpenseAnalysis() {
               onChange={(e) =>
                 setFilters({ ...filters, minAmount: e.target.value })
               }
-              className="p-2 border rounded"
+              className="p-2 border rounded w-full"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">Max Amount</label>
             <input
               type="number"
               placeholder="Max Amount"
@@ -164,29 +155,37 @@ export default function ExpenseAnalysis() {
               onChange={(e) =>
                 setFilters({ ...filters, maxAmount: e.target.value })
               }
-              className="p-2 border rounded"
+              className="p-2 border rounded w-full"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">Start Date</label>
             <input
               type="date"
               value={filters.startDate}
               onChange={(e) =>
                 setFilters({ ...filters, startDate: e.target.value })
               }
-              className="p-2 border rounded"
+              className="p-2 border rounded w-full"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm text-gray-600 mb-1">End Date</label>
             <input
               type="date"
               value={filters.endDate}
               onChange={(e) =>
                 setFilters({ ...filters, endDate: e.target.value })
               }
-              className="p-2 border rounded"
+              className="p-2 border rounded w-full"
             />
           </div>
         </div>
 
         {loading ? (
-          <div className="text-center text-blue-600 font-medium py-16">
+          <div className="text-center text-amber-600 font-medium py-16">
             Loading expenses...
           </div>
         ) : filteredExpenses.length === 0 ? (
@@ -195,8 +194,8 @@ export default function ExpenseAnalysis() {
           </div>
         ) : (
           <>
-            <div className="bg-blue-50 border border-blue-200 p-6 rounded-xl shadow">
-              <h2 className="text-xl font-semibold text-blue-800">
+            <div className="bg-amber-50 border border-amber-200 p-6 rounded-xl shadow">
+              <h2 className="text-xl font-semibold text-amber-800">
                 Total Amount Spent
               </h2>
               <p className="text-3xl font-bold text-red-600 mt-2">
@@ -206,14 +205,15 @@ export default function ExpenseAnalysis() {
 
             {/* Chart + List */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white p-6 rounded-xl shadow border border-blue-100 relative">
+              {/* Chart */}
+              <div className="bg-white p-6 rounded-xl shadow border border-amber-100 relative">
                 <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-lg font-semibold text-blue-700">
+                  <h2 className="text-lg font-semibold text-amber-700">
                     Category Breakdown
                   </h2>
                   <button
                     onClick={() => setShowBarChart(!showBarChart)}
-                    className="text-blue-600 hover:text-blue-800"
+                    className="text-amber-600 hover:text-amber-800"
                     title={
                       showBarChart
                         ? "Switch to Pie Chart"
@@ -278,8 +278,8 @@ export default function ExpenseAnalysis() {
               </div>
 
               {/* Expense List */}
-              <div className="bg-white p-6 rounded-xl shadow border border-blue-100 overflow-auto">
-                <h2 className="text-lg font-semibold text-blue-700 mb-4">
+              <div className="bg-white p-6 rounded-xl shadow border border-amber-100 overflow-auto">
+                <h2 className="text-lg font-semibold text-amber-700 mb-4">
                   All Expenses
                 </h2>
                 <ul className="space-y-3 max-h-[320px] overflow-y-auto pr-2">
@@ -295,8 +295,7 @@ export default function ExpenseAnalysis() {
                         </span>
                         <span className="text-sm text-gray-600">
                           ₦{Number(exp.amount).toLocaleString()} -{" "}
-                          {exp.category?.name || "Uncategorized"}{" "}
-                          {exp.location && `- ${exp.location}`}
+                          {exp.category?.name || "Uncategorized"}
                         </span>
                         <span className="text-xs text-gray-400">
                           {new Date(exp.createdAt).toLocaleDateString()}
@@ -305,14 +304,13 @@ export default function ExpenseAnalysis() {
                     ))}
                 </ul>
               </div>
-
             </div>
 
             {/* Action Buttons */}
             <div className="flex flex-wrap gap-4 mt-6">
               <button
                 onClick={downloadReport}
-                className="flex items-center gap-2 bg-blue-600 text-white px-5 py-3 rounded-lg font-medium shadow hover:bg-blue-700 transition"
+                className="flex items-center gap-2 bg-amber-600 text-white px-5 py-3 rounded-lg font-medium shadow hover:bg-amber-700 transition"
               >
                 <Download className="w-5 h-5" /> Download Report
               </button>

@@ -1,7 +1,7 @@
 import { mongooseConnect } from "@/lib/mongoose";
 import Order from "@/models/Order";
 import { Transaction } from "@/models/Transactions";
-import { Product } from "@/models/Product";
+import Product from "@/models/Product";
 
 export default async function handler(req, res) {
   await mongooseConnect();
@@ -11,34 +11,34 @@ export default async function handler(req, res) {
     try {
       const { status } = req.body;
 
-      // Fetch the current order
+      // Fetch the order
       const order = await Order.findById(id).lean();
-      if (!order) {
-        return res.status(404).json({ error: "Order not found" });
-      }
+      if (!order) return res.status(404).json({ error: "Order not found" });
 
-      // If already delivered, prevent duplication
+      // Prevent marking delivered twice
       if (order.status === "Delivered" && status === "Delivered") {
-        return res.status(400).json({ error: "Order already marked as Delivered" });
+        return res
+          .status(400)
+          .json({ error: "Order already marked as Delivered" });
       }
 
-      // Update the order status
+      // Update the status
       const updatedOrder = await Order.findByIdAndUpdate(
         id,
         { status },
         { new: true }
       );
 
-      // If status changed to Delivered, log as a completed transaction
+      // Only handle "Delivered" logic if status is changed to Delivered
       if (status === "Delivered") {
-        const items = (order.products || []).map((item) => ({
+        const items = (order.cartProducts || []).map((item) => ({
           name: item.name,
           qty: item.quantity,
           salePriceIncTax: item.price,
-          productId: item._id || item.productId,
+          productId: item.productId,
         }));
 
-        // Save to Transactions
+        // Save transaction
         await Transaction.create({
           tenderType: "online",
           amountPaid: order.total,
@@ -60,12 +60,7 @@ export default async function handler(req, res) {
           if (item.productId && item.qty > 0) {
             await Product.findByIdAndUpdate(
               item.productId,
-              {
-                $inc: {
-                  quantity: -item.qty,
-                  sold: item.qty,
-                },
-              },
+              { $inc: { quantity: -item.qty, sold: item.qty } },
               { new: true }
             );
           }

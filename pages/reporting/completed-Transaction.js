@@ -77,7 +77,7 @@ async function fetchTransactions() {
 
   return (
     <Layout title="Completed Transactions">
-      <div className="min-h-screen bg-blue-50 p-6 text-blue-900 font-sans">
+      <div className="min-h-screen bg-gray-50 p-6 text-amber-900 font-sans">
         <h1 className="text-3xl font-bold mb-6">Completed Transactions</h1>
 
         <div className="flex flex-col lg:flex-row gap-6 mb-6">
@@ -94,7 +94,7 @@ async function fetchTransactions() {
                   <button
                     key={day}
                     className={`rounded px-2 py-1 ${
-                      isToday ? "bg-blue-500 text-white" : "hover:bg-blue-100"
+                      isToday ? "bg-amber-500 text-white" : "hover:bg-amber-100"
                     }`}
                     onClick={() => setSelectedDate(`2025-06-${day.toString().padStart(2, "0")}`)}
                   >
@@ -123,7 +123,7 @@ async function fetchTransactions() {
 
               </div>
               <button
-                className="text-sm text-blue-600 hover:underline"
+                className="text-sm text-amber-600 hover:underline"
                 onClick={() => {
                   setLocationFilter("");
                   setSelectedDate(null);
@@ -139,17 +139,17 @@ async function fetchTransactions() {
   <div className="flex flex-wrap gap-3">
     <button
       onClick={exportCSV}
-      className="bg-blue-500 text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-blue-600 transition duration-150 shadow-sm"
+      className="bg-amber-500 text-white px-4 py-1.5 rounded-md text-sm font-medium hover:bg-amber-600 transition duration-150 shadow-sm"
     >
       Export to CSV
     </button>
     <button
-      className="bg-white border border-blue-500 text-blue-600 px-4 py-1.5 rounded-md text-sm font-medium hover:bg-blue-50 transition duration-150"
+      className="bg-white border border-amber-500 text-amber-600 px-4 py-1.5 rounded-md text-sm font-medium hover:bg-amber-50 transition duration-150"
     >
       Export to Word
     </button>
     <button
-      className="bg-white border border-blue-500 text-blue-600 px-4 py-1.5 rounded-md text-sm font-medium hover:bg-blue-50 transition duration-150"
+      className="bg-white border border-amber-500 text-amber-600 px-4 py-1.5 rounded-md text-sm font-medium hover:bg-amber-50 transition duration-150"
     >
       Export to Excel
     </button>
@@ -167,7 +167,7 @@ async function fetchTransactions() {
 
         <div id="print-section" className="overflow-x-auto bg-white rounded shadow border">
           <table className="min-w-full text-sm">
-            <thead className="bg-blue-100 text-blue-900">
+            <thead className="bg-amber-100 text-amber-900">
               <tr>
                 <th className="px-4 py-3 text-left">Staff</th>
                 <th className="px-4 py-3 text-left">Location</th>
@@ -185,7 +185,7 @@ async function fetchTransactions() {
             <tbody>
               {transactions.map((tx) => (
                 <>
-                  <tr key={tx._id} className="border-t hover:bg-blue-50">
+                  <tr key={tx._id} className="border-t hover:bg-amber-50">
                     <td className="px-4 py-2">{tx.staff?.name || "N/A"}</td>
                     <td className="px-4 py-2">{tx.location}</td>
                     <td className="px-4 py-2">{tx.device || "Till 1"}</td>
@@ -209,7 +209,7 @@ async function fetchTransactions() {
                     <tr className="bg-gray-50">
                       <td colSpan={11} className="px-6 py-4">
                         <table className="w-full text-sm">
-                          <thead className="bg-blue-100">
+                          <thead className="bg-amber-100">
                             <tr>
                               <th className="px-3 py-2 text-left">Name</th>
                               <th className="px-3 py-2 text-right">Qty</th>

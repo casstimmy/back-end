@@ -101,7 +101,7 @@ export default function ExpenseForm({ onSaved }) {
       className="bg-white p-6 rounded-xl shadow-md space-y-5 border border-gray-200"
     >
       <h2 className="text-xl font-semibold text-gray-800 flex items-center gap-2">
-        <PlusCircle className="w-5 h-5 text-blue-500" />
+        <PlusCircle className="w-5 h-5 text-amber-500" />
         Add New Expense
       </h2>
 
@@ -172,13 +172,13 @@ export default function ExpenseForm({ onSaved }) {
 
       {/* Location */}
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-gray-700">Location (Optional)</label>
+        <label className="hidden block text-sm font-medium text-gray-700">Location (Optional)</label>
         <input
           type="text"
           name="location"
           value={formData.location}
           onChange={handleChange}
-          className="w-full p-3 border border-gray-300 rounded-lg"
+          className=" hidden w-full p-3 border border-gray-300 rounded-lg"
           placeholder="e.g., Ibile 1"
         />
       </div>
@@ -200,7 +200,7 @@ export default function ExpenseForm({ onSaved }) {
       <button
         type="submit"
         disabled={loading}
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg flex items-center justify-center transition duration-200 disabled:opacity-50"
+        className="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold py-3 rounded-lg flex items-center justify-center transition duration-200 disabled:opacity-50"
       >
         {loading ? (
           <>

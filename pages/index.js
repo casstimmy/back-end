@@ -36,7 +36,6 @@ export default function Home() {
   const [hourlyTransactions, setHourlyTransactions] = useState([]);
   const [storeInfo, setStoreInfo] = useState({});
   const [loading, setLoading] = useState(true);
-  const [selectedLocation, setSelectedLocation] = useState("All");
   const [allTransactions, setAllTransactions] = useState([]);
   const [staffCount, setStaffCount] = useState(0);
   const [expenses, setExpenses] = useState([]);
@@ -67,11 +66,13 @@ export default function Home() {
         setSelectedUser(storeRes.value?.data?.user?.name || "Admin");
         setStaffCount(staffRes.value?.data?.length || 0);
         setExpenses(expenseRes.value?.data || []);
-        setRecentOrders(orderRes.value?.data?.slice(0, 5) || []);
+        setRecentOrders(orderRes.value?.data?.orders?.slice(0, 5) || []);
         const products = prodRes.value?.data || [];
 
         if (products.length > 0) {
-          const sorted = [...products].sort((a, b) => (b.sold || 0) - (a.sold || 0));
+          const sorted = [...products].sort(
+            (a, b) => (b.sold || 0) - (a.sold || 0)
+          );
           setTopProducts(sorted.slice(0, 5));
           setLowProducts(sorted.slice(-5).reverse());
         } else {
@@ -94,9 +95,8 @@ export default function Home() {
 
   useEffect(() => {
     if (allTransactions.length > 0) {
-      processDashboardData(allTransactions, selectedLocation);
+      processDashboardData(allTransactions);
     } else {
-      // Reset KPIs and chart data if no transactions
       setKpis({
         sales: 0,
         salesChangePercent: 0,
@@ -110,24 +110,12 @@ export default function Home() {
       setSalesBefore([]);
       setHourlyTransactions([]);
     }
-  }, [selectedLocation, allTransactions]);
+  }, [allTransactions]);
 
-  function processDashboardData(transactions, location) {
-    const filteredTx = transactions.filter((tx) => {
-      if (!tx.location) return false;
-
-      if (location === "All") return true;
-
-      const loc =
-        typeof tx.location === "object"
-          ? tx.location.name || tx.location._id
-          : tx.location;
-      return String(loc) === String(location);
-    });
-
+  function processDashboardData(transactions) {
+    const filteredTx = transactions; // no location filtering now
     const totalSales = filteredTx.reduce((sum, tx) => sum + (tx.total || 0), 0);
-    const avgTxVal =
-      filteredTx.length > 0 ? totalSales / filteredTx.length : 0;
+    const avgTxVal = filteredTx.length > 0 ? totalSales / filteredTx.length : 0;
 
     const productSales = {};
     filteredTx.forEach((tx) => {
@@ -184,7 +172,10 @@ export default function Home() {
     datasets: [
       {
         label: "Completed Transactions",
-        data: hourlyTransactions.length > 0 ? hourlyTransactions : new Array(15).fill(0),
+        data:
+          hourlyTransactions.length > 0
+            ? hourlyTransactions
+            : new Array(15).fill(0),
         borderColor: "#2563eb",
         backgroundColor: "rgba(37, 99, 235, 0.3)",
         fill: true,
@@ -206,43 +197,41 @@ export default function Home() {
 
   return (
     <Layout>
-      <div className="min-h-screen bg-blue-50 p-6 font-sans text-blue-900">
+      <div className="min-h-screen bg-gray-50 p-6 font-sans text-amber-800">
         <header className="flex flex-col sm:flex-row items-center justify-between mb-8 space-y-4 sm:space-y-0">
           <h1 className="text-3xl font-bold mb-2">Welcome {selectedUser}</h1>
           <button
-            className="bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded px-5 py-2"
+            className="bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded px-5 py-2"
             onClick={() => router.push("/products/new")}
           >
             + Add a Product
           </button>
         </header>
 
-        {loading || !kpis ? (
-          <p>Loading...</p>
-        ) : (
+      {loading || !kpis ? (
+  <div className="flex items-center justify-center py-16">
+    <div className="h-10 w-10 border-4 border-amber-600 border-t-transparent rounded-full animate-spin"></div>
+  </div>
+) :  (
           <>
             <section className="mb-10">
-              <label htmlFor="location-select" className="block font-semibold mb-1">
-                Location
-              </label>
-              <select
-                id="location-select"
-                className="border border-blue-300 rounded px-3 py-1"
-                value={selectedLocation}
-                onChange={(e) => setSelectedLocation(e.target.value)}
-              >
-                <option value="All">All</option>
-                {storeInfo?.locations?.map((loc, idx) => (
-                  <option key={idx} value={loc}>
-                    {loc}
-                  </option>
-                ))}
-              </select>
-
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-6">
-                <KpiCard label="Sales" value={`₦${kpis.sales.toLocaleString()}.00`} changePercent={kpis.salesChangePercent} />
-                <KpiCard label="Transactions" value={kpis.transactions} changePercent={kpis.transactionsChangePercent} isCurrency={false} />
-                <KpiCard label="Avg. Transaction Value" value={`₦${kpis.avgTransactionValue.toFixed(2)}`} changePercent={kpis.avgTransactionChangePercent} />
+                <KpiCard
+                  label="Sales"
+                  value={`₦${kpis.sales.toLocaleString()}.00`}
+                  changePercent={kpis.salesChangePercent}
+                />
+                <KpiCard
+                  label="Transactions"
+                  value={kpis.transactions}
+                  changePercent={kpis.transactionsChangePercent}
+                  isCurrency={false}
+                />
+                <KpiCard
+                  label="Avg. Transaction Value"
+                  value={`₦${kpis.avgTransactionValue.toFixed(2)}`}
+                  changePercent={kpis.avgTransactionChangePercent}
+                />
               </div>
             </section>
 
@@ -251,8 +240,13 @@ export default function Home() {
                 <Bar data={salesByProductData} options={{ responsive: true }} />
               </ChartCard>
               <ChartCard title="Completed Transactions (by Hour)">
-                <Line data={transactionsByHourData} options={{ responsive: true }} />
-                <p className="mt-2 text-sm text-gray-600">Note: refunds excluded</p>
+                <Line
+                  data={transactionsByHourData}
+                  options={{ responsive: true }}
+                />
+                <p className="mt-2 text-sm text-gray-600">
+                  Note: refunds excluded
+                </p>
               </ChartCard>
               <ChartCard title="Expenses Breakdown">
                 <Bar data={expenseData} options={{ responsive: true }} />
@@ -260,25 +254,44 @@ export default function Home() {
             </section>
 
             <section className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mt-10">
-              <ListCard title="Recent Orders" items={recentOrders.map((o) => `${o.customer?.name || "Unknown"} - ₦${o.total || 0}`)} />
-              <ListCard title="Top Products" items={topProducts.map((p) => `${p.name} - Sold: ${p.sold || 0}`)} />
-              <ListCard title="Low Performing Products" items={lowProducts.map((p) => `${p.name} - Sold: ${p.sold || 0}`)} />
+              <ListCard
+                title="Recent Orders"
+                items={recentOrders.map(
+                  (o) => `${o.customer?.name || "Unknown"} - ₦${o.total || 0}`
+                )}
+              />
+              <ListCard
+                title="Top Products"
+                items={topProducts.map(
+                  (p) => `${p.name} - Sold: ${p.sold || 0}`
+                )}
+              />
+              <ListCard
+                title="Low Performing Products"
+                items={lowProducts.map(
+                  (p) => `${p.name} - Sold: ${p.sold || 0}`
+                )}
+              />
             </section>
 
             <section className="mt-10 flex flex-col lg:flex-row items-start lg:items-center justify-between space-y-6 lg:space-y-0">
               <button
                 onClick={() => router.push("/reporting/reporting")}
-                className="bg-blue-700 hover:bg-blue-800 text-white font-semibold rounded px-6 py-3 shadow"
+                className="bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded px-6 py-3 shadow"
               >
                 VIEW DASHBOARD
               </button>
-              <div className="text-blue-800">
-                <h3 className="font-semibold text-lg mb-1">Company Information</h3>
-                <p>{storeInfo?.storeName || "Your Company"} - Serving Quality Since 2005</p>
+              <div className="flex flex-col justify-center text-center text-amber-800">
+                <h3 className="font-semibold text-lg mb-1">
+                  Company Information
+                </h3>
+                <p>
+                  {storeInfo?.storeName || "Oma Hub"} - Serving Quality Since
+                  2005
+                </p>
               </div>
-              <div className="text-blue-800">
-                <h3 className="font-semibold text-lg mb-1">Staff</h3>
-                <p>{staffCount} Team Member{staffCount !== 1 ? "s" : ""}</p>
+              <div className="text-amber-800">
+                <h3 className="font-semibold text-lg mb-1">--</h3>
               </div>
             </section>
           </>
@@ -294,7 +307,11 @@ function KpiCard({ label, value, changePercent, isCurrency = true }) {
     <div className="bg-white rounded-lg shadow p-5 flex flex-col items-center">
       <span className="text-2xl font-bold">{value}</span>
       <span className="text-sm text-gray-600">{label}</span>
-      <span className={`mt-2 font-semibold ${isNegative ? "text-red-600" : "text-green-600"}`}>
+      <span
+        className={`mt-2 font-semibold ${
+          isNegative ? "text-red-600" : "text-green-600"
+        }`}
+      >
         {isNegative ? "▼" : "▲"} {Math.abs(changePercent)}%
       </span>
     </div>
@@ -314,8 +331,12 @@ function ListCard({ title, items }) {
   return (
     <div className="bg-white rounded-lg shadow p-4 h-[40vh] overflow-y-auto">
       <h2 className="text-lg font-semibold mb-2">{title}</h2>
-      <ul className="space-y-2 text-sm text-blue-900">
-        {items.length > 0 ? items.map((item, idx) => <li key={idx}>{item}</li>) : <li className="text-gray-500">No data available</li>}
+      <ul className="space-y-2 text-sm text-amber-900">
+        {items.length > 0 ? (
+          items.map((item, idx) => <li key={idx}>{item}</li>)
+        ) : (
+          <li className="text-gray-500">No data available</li>
+        )}
       </ul>
     </div>
   );
