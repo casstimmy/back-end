@@ -35,7 +35,7 @@
     "mongodb": "^6.10.0",
     "mongoose": "^8.14.1",
     "multiparty": "^4.2.3",
-    "next": "^15.3.3",
+    "next": "15.3.8",
     "nodemailer": "^6.10.1",
     "pdfjs-dist": "^5.3.31",
     "pdfkit": "^0.17.1",
