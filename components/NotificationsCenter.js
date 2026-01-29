@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import axios from "axios";
 import { Bell, X, Check, Trash2, AlertCircle, Package, TrendingDown, CheckCheck, PackageX } from "lucide-react";
 
@@ -373,13 +374,25 @@ export default function NotificationsCenter() {
                       </p>
 
                       {notif.action && (
-                        <a
-                          href={notif.action.link}
-                          onClick={(e) => e.stopPropagation()}
-                          className="text-xs text-amber-600 hover:text-amber-700 font-medium mt-2 inline-block"
-                        >
-                          {notif.action.label} →
-                        </a>
+                        notif.action.link && notif.action.link.startsWith("/") ? (
+                          <Link
+                            href={notif.action.link}
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-xs text-amber-600 hover:text-amber-700 font-medium mt-2 inline-block"
+                          >
+                            {notif.action.label} →
+                          </Link>
+                        ) : (
+                          <a
+                            href={notif.action.link}
+                            onClick={(e) => { e.stopPropagation(); }}
+                            className="text-xs text-amber-600 hover:text-amber-700 font-medium mt-2 inline-block"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            {notif.action.label} →
+                          </a>
+                        )
                       )}
                     </div>
 
@@ -413,12 +426,9 @@ export default function NotificationsCenter() {
           )}
           {notifications.length > 0 && !loading && (
             <div className="border-t p-3 bg-gray-50 text-center">
-              <a
-                href="/notifications"
-                className="text-sm text-amber-600 hover:text-amber-700 font-medium"
-              >
+              <Link href="/notifications" className="text-sm text-amber-600 hover:text-amber-700 font-medium">
                 View All Notifications →
-              </a>
+              </Link>
             </div>
           )}
         </div>
